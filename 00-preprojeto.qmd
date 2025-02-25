@@ -28,14 +28,13 @@ lang: pt
 format:
   html:
     css: justificado.css
-  
 ---
 
 ## Introdução e contextualização
 
 Considerando que o questionário PET consegue capturar somente informações acerca dos estudantes que já ingressaram na carreira de Ciências Sociais, avaliamos que é interessante analisar, também, o perfil daqueles alunos que prestaram o vestibular da FUVEST e escolheram a carreira de Ciências Sociais, tendo sido aprovados ou não. Quais sãos os elementos importantes que são responsáveis pela aprovação do aluno nesta carreira. 
 
-Com isso em mente, estabelecemos, portanto a seguinte pergunta de pesquisa: **como a renda, raça e o tipo de escola inlfuenciam o ingresso de alunos cotistas e não cotistas na carreira de Ciências Sociais da Universidade de São Paulo**? Para as variáveis analisadas, estabelecemos:
+Com isso em mente, estabelecemos, portanto, a seguinte pergunta de pesquisa: **como a renda, raça e o tipo de escola inlfuenciam o ingresso de alunos cotistas e não cotistas na carreira de Ciências Sociais da Universidade de São Paulo**? Para as variáveis analisadas, estabelecemos:
 
 | Variável              | Tipo                  | Categoria/Descrição |
 |-----------------------|----------------------|---------------------|
