@@ -97,7 +97,7 @@ df <- df |>
   )
   
 
-# Salvando os arquivos como Excel na pasta dados
+# Salvando os arquivos como Excel na pasta dado
 writexl::write_xlsx(df, path = "dados/df.xlsx")
 
 
