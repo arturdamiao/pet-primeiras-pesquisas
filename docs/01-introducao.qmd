@@ -197,6 +197,7 @@ mod_null <- glm(formula = matricula ~ 1, family=binomial(link=probit),
 ```
 
 Frequência da matrícula:
+
 ```{r}
 #| label: distribuicao 
 #| echo: false
@@ -215,7 +216,6 @@ tabela_matricula <- data.frame(
 # Exibindo como tabela
 kable(tabela_matricula, caption = "Distribuição da variável 'matricula'")
 ```
-
 
 ```{r}
 #| label: teste-hosmer-lemeshow
@@ -246,7 +246,6 @@ tabela_omnibus <- tibble::tibble(
 # Exibindo como tabela formatada
 knitr::kable(tabela_omnibus, caption = "Teste Omnibus para os coeficientes do modelo")
 ```
-
 
 ```{r}
 #| label: tabela-coeficientes
@@ -317,5 +316,3 @@ addmargins(prop.table(table(mod$y, pred > 0.3)))
 # Matriz de confusão com corte de 0.3
 table(mod$y, pred > 0.3)
 ```
-
-
