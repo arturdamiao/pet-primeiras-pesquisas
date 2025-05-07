@@ -100,5 +100,5 @@ df <- df |>
 # Salvando os arquivos como Excel na pasta dados
 writexl::write_xlsx(df, path = "dados/df.xlsx")
 
-
+writexl::write_xlsx(Fuvest19_23.Sociais, path = "dados/fuvest.xlsx")
 

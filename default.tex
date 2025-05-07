@@ -1,0 +1,13 @@
+\usepackage{authblk}
+\usepackage{orcidlink}
+\renewcommand\Affilfont{\small}
+
+$for(author)$
+\author$if(it.affil-id)$[$it.affil-id$]$endif${$it.name$}
+$endfor$
+
+$if(affiliations)$
+$for(affiliations)$
+\affil[$it.id$]{$it.name$}
+$endfor$
+$endif$
