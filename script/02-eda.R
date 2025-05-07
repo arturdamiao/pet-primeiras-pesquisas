@@ -16,6 +16,7 @@ library(tidyverse)
 library(ResourceSelection)
 library(BaylorEdPsych)
 library(DescTools)
+library(caret)
 
 # Mudar formato do número a ser usado
 options(scipen = 100) # evitar usar número científico como padrão
@@ -53,12 +54,14 @@ fuvest <- fuvest |>
 
 mod <- glm(formula = matricula ~ renda + esc1 + ensino_fund +
              ensino_med + tipo_EM + cursinho,
-           family=binomial(link=probit), data=fuvest)
+           family=binomial(link=logit), data=fuvest)
 
 # Imprimir o modelo
 base::summary(mod)
 
 tab_model(mod)
+
+### Dúvida: modelo link logit ou probit? 
 
 ## ---------------------- Criação de um Modelo Nulo para comparação ------------
 
@@ -121,23 +124,43 @@ write.table(coeficientes, 'coeficientes_probit.csv', sep = ';', dec = ',')
 ## ---------------------- Tabela 5 - Medidas de ajustes ------------------------
 
 # -2LL
-round(-2*logLik(mod),2) #pode ser obtida por fit5_rep$fit5_rep$deviance
+round(-2*logLik(mod),2)
 
 # -2LL do modelo nulo
 round(-2*logLik(mod_null),2)
 
-# Pseudo R² 
-# OBS: Reportaremos apenas Cox e Snell e Nagelkerke seguindo o artigo original
-round(PseudoR2(mod),3)
+# Pseudo R² de McFadden 
+round(PseudoR2(mod, which = "McFadden"),3)
 
-##McFadden 
-###0.046 
+# Pseudo R² de Cox & Snell
+round(PseudoR2(mod, which = "CoxSnell"), 3)
+
+# Pseudo R² de Nagelkerke
+round(PseudoR2(mod, which = "Nagelkerke"), 3)
 
 # BIC
 round(BIC(mod),3)
 round(BIC(mod_null),3) # BIC do modelo nulo
 
-##  --------------------- Tabela 8. Tabela de classificação --------------------
+# Gerar tabela com resultados
+tabela_ajustes <- data.frame(
+  Medida = c("-2 Log-Likelihood (-2LL)", "Pseudo R² de McFadden", "Pseudo R² de Cox & Snell", 
+             "Pseudo R² de Nagelkerke", "BIC"),
+  `Valor Modelo Logit` = c(round(-2*logLik(mod), 2),
+                           round(PseudoR2(mod, which = "McFadden"), 3),
+                           round(PseudoR2(mod, which = "CoxSnell"), 3),
+                           round(PseudoR2(mod, which = "Nagelkerke"), 3),
+                           round(BIC(mod), 3)),
+  `Valor Modelo Nulo` = c(round(-2*logLik(mod_null), 2),
+                          NA, NA, NA, round(BIC(mod_null), 3))
+)
+
+# Exibir tabela
+print(tabela_ajustes) |> 
+  flextable::flextable()
+
+
+##  --------------------- Tabela 6. Tabela de classificação --------------------
 
 # calculando os valores preditos do modelo
 pred <- predict(mod, type = 'response')
@@ -145,7 +168,23 @@ pred <- predict(mod, type = 'response')
 # OBS: Calcula o percentual das margens (total), indicando que probabilidades 
 #     preditas maiores que 0.5 serão consideradas 1 (ou seja, acerto)
 
-addmargins(prop.table(table(mod$y, pred > 0.5)))
+addmargins(prop.table(table(mod$y, pred > 0.3)))
+
+# Matriz de confusão com corte de 0.3
+table(mod$y, pred > 0.3)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
