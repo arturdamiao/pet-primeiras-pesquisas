@@ -1,0 +1,321 @@
+---
+title: "Desigualdades nos acessos às Ciências Sociais:"
+subtitle: "O papel da raça, renda e escolaridade na aprovação do vestibular"
+author:
+  - name: Artur Damião
+    orcid: 0000-0002-8628-1653
+    email: arturcardoso@usp.br
+    affiliation: Departamento de Sociologia
+  - name: Murillo Marschner Alves de Brito
+    orcid: 0000-0002-4969-554X
+    email: murillomarschner@usp.br
+    affiliation: Departamento de Sociologia
+  - name: Isabella da Nóbrega
+    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+    email: isabelladanobrega@usp.br
+  - name: Gabriella Medeiros
+    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+    email: gabriella.medeiros@usp.br
+  - name: Maria Eduarda
+    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+    email: sduda8958@usp.br
+  - name: Yasmin Flor
+    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+    email: floryasmin861@usp.br
+
+keywords: 
+  - Estratificação educacional
+  - Ensino superior
+  - Capital cultural
+
+lang: pt
+format:
+  html:
+    css: justificado.css
+bibliography: references.bib
+---
+
+```{r}
+#| label: preparando-ambiente
+#| include: false
+
+# Importando pacotes
+library(sjPlot)
+library(easyORtables)
+library(xfun)
+library(plotor)      
+library(datasets)   
+library(dplyr)       
+library(tidyr)       
+library(forcats)     
+library(stats)      
+library(broom)       
+library(ggplot2)     
+library(gtsummary)
+library(tidyverse)
+library(ResourceSelection)
+library(DescTools)
+library(caret)
+library(knitr)
+
+# Mudar formato do número a ser usado
+options(scipen = 100) # evitar usar número científico como padrão
+```
+
+```{r}
+#| label: base-de-dados
+#| include: false
+#| cache: true
+
+fuvest <- readxl::read_xlsx("../dados/fuvest.xlsx")
+
+# Selecionando variáveis de interesse, conforme dicionário
+# da FUVEST.
+fuvest <- fuvest |> 
+  dplyr::select(
+    c(ano,V4,V6,V7,V8,V9,V11,V12,V15,V16,V17,V18,V25,V26)
+  )
+
+fuvest <- fuvest |> 
+  dplyr::rename(
+    matricula = V4,
+    sexo = V6,
+    raca = V7,
+    renda = V8,
+    n_moradores = V9,
+    esc1 = V11,
+    esc2 = V12,
+    ensino_fund = V15,
+    ensino_med = V16,
+    tipo_EM = V17,
+    cursinho = V18, 
+    modalidade_inscricao = V25,
+    modalidade_matricula = V26
+  )
+
+# Modificando a escolaridade dos pais
+# Criando a varíavel "escolaridade", que leva em conta a maior escolaridade
+# dos pais
+fuvest <- fuvest |> 
+   dplyr::mutate(
+     esc1 = case_when(
+      esc1 %in% 1:3 ~ 1,
+      esc1 %in% 4:6 ~ 2,
+      esc1 %in% 7:9 ~ 3,
+    ),
+      esc1 = factor(
+        esc1,
+        levels = c(1, 2, 3),
+        labels = c("Baixa", "Média", "Alta"),
+        ordered = TRUE
+      ),
+    esc2 = case_when(
+      esc2 %in% 1:3 ~ 1,
+      esc2 %in% 4:6 ~ 2,
+      esc2 %in% 7:9 ~ 3,
+    ),
+      esc2 = factor(
+        esc2,
+        levels = c(1, 2, 3),
+        labels = c("Baixa", "Média", "Alta"),
+        ordered = TRUE
+      ),
+    escolaridade = factor(
+      pmax(as.numeric(esc1), as.numeric(esc2), na.rm = TRUE),
+      levels = c(1, 2, 3),
+      labels = c("Baixa", "Média", "Alta"),
+      ordered = TRUE
+    ),
+    raca = case_when(
+      is.na(raca) ~ NA_integer_,
+    raca %in% c(1, 4) ~ 0,
+    # brancos e amarelos = 0 
+    # PPI = 1
+    TRUE ~ 1
+    ),
+    cursinho = case_when(
+      cursinho %in% 1 ~ 0, # não fez cursinho
+      TRUE ~ 1
+    )
+    ) |> 
+   dplyr::relocate(escolaridade, .after = esc2)
+```
+
+## Introdução
+
+De acordo com @fernandes2020, etc.
+
+## Metodologia
+
+A partir da base de dados da FUVEST, referente aos anos de `r min(fuvest$ano)` a `r max(fuvest$ano)`. Ao todo, somam-se `r count(fuvest)` observações distribuídas entre os anos.
+
+Com isso em mente, estabelecemos, portanto, a seguinte pergunta de pesquisa: **como a renda, raça e o tipo de escola inlfuenciam o ingresso de alunos cotistas e não cotistas na carreira de Ciências Sociais da Universidade de São Paulo**? Para as variáveis analisadas, estabelecemos:
+
+| Variável | Tipo | Categoria/Descrição |
+|-------------------------|------------------------|-----------------------|
+| **Convocado para matrícula (VD)** | Binária | 1 = Convocado para matricular-se na carreira de Ciências Sociais pela FUVEST <br> 0 = Não convocado |
+| **Raça** | Categórica (dummy) | 0 = Branco (referência) <br> 1 = Preto/Pardo/Indígena |
+| **Renda familiar** | Contínua | Faixas de renda em salários mínimos |
+| **Escolaridade dos pais** | Ordinal | 1 = Baixa (até ensino fundamental completo) <br> 2 = Média (ensino médio completo) <br> 3 = Alta (ensino superior completo ou mais) |
+| **Tipo de Ensino Médio** | Categórica (dummy) | 0 = Escola pública (referência) <br> 1 = Escola privada |
+
+Para compreender o impacto de cada uma das variáveis, estabelecemos o seguinte modelo de regressão logística:
+
+$$
+\log \left(\frac{P(Aprovado=1)}{1 - P(Aprovado=1)}\right) = \beta_0 + \beta_1 \text{Raça} + \beta_2 \text{Renda} + \beta_3 \text{Escolaridade} + \beta_4 \text{TipoEscola} + \varepsilon
+$$
+
+## Hipóteses de pesquisa
+
+Frente ao exposto, consideramos as seguintes hipóteses:
+
+**H~0~**: Raça, renda e tipo de escola não influenciam o ingresso de estudantes na carreira de Ciências Sociais. **H~1~**: A renda familiar e a escolaridade dos pais (proxy para capital cultural) aumentam as chances de ingresso (analisar dados da FUVEST, comparando os inscritos na carreira X perfil presente no curso, via questionário PET).\
+**H~2~**: Alunos oriundos de escolas privadas têm maior probabilidade de ingressar sem necessidade de cotas, mesmo em grupos de baixa renda.
+
+No contexto da análise das hipóteses propostas, o objetivo é investigar como variáveis sociodemográficas, como raça, renda familiar e tipo de escola, influenciam o ingresso de estudantes na carreira de Ciências Sociais. A hipótese nula (**H~0~**) sugere que essas variáveis não têm impacto significativo sobre a aprovação no vestibular, implicando que fatores como a origem socioeconômica dos candidatos não determinariam as suas chances de ingresso. Para testar essa hipótese, compararemos as características dos estudantes inscritos na FUVEST para a carreira de Ciências Sociais com o perfil dos alunos já aprovados, a partir dos dados do questionário PET.
+
+Por outro lado, a hipótese alternativa (**H~1~**) propõe que a renda familiar e a escolaridade dos pais (como proxy para o capital cultural) têm um efeito positivo nas chances de ingresso, favorecendo candidatos com maior capital cultural. A relação entre essas variáveis e o ingresso será analisada por meio do modelo de regressão apresentado, verificando a consistência e a força dessa associação nos dados coletados. Comparando o perfil dos inscritos com o dos aprovados, será possível avaliar a influência desses fatores no processo seletivo e nas desigualdades de acesso à educação superior.
+
+### Modelo de Regressão Logística
+
+```{r}
+#| label: modelo
+#| echo: false
+#| cache: true
+mod <- glm(formula = matricula ~ renda + escolaridade +
+           raca + ensino_med + cursinho,
+           family=binomial(link=probit), data=fuvest)
+
+tab_model(mod)
+```
+
+```{r}
+#| label: modelo-nulo
+#| include: false
+mod_null <- glm(formula = matricula ~ 1, family=binomial(link=probit),
+                     data=fuvest) 
+```
+
+Frequência da matrícula:
+```{r}
+#| label: distribuicao 
+#| echo: false
+# Frequência e proporção
+base_rep <- mod$model
+tab_matricula <- table(base_rep$matricula)
+prop_matricula <- round(prop.table(tab_matricula), 2)
+
+# Unindo em data.frame
+tabela_matricula <- data.frame(
+  Matricula = names(tab_matricula),
+  Frequência = as.numeric(tab_matricula),
+  Proporção = as.numeric(prop_matricula)
+)
+
+# Exibindo como tabela
+kable(tabela_matricula, caption = "Distribuição da variável 'matricula'")
+```
+
+
+```{r}
+#| label: teste-hosmer-lemeshow
+#| echo: false
+## Teste de Hosmer e Lemeshow
+hoslem.test(mod$y, fitted(mod), g=10)
+```
+
+```{r}
+#| label: teste-omnibus-coeficientes
+#| echo: false
+
+# Cálculos
+gl <- mod$df.null - mod$df.residual
+qui2 <- with(mod, null.deviance - deviance)
+p_valor <- with(mod, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+
+# Formatação do valor-p
+p_formatado <- ifelse(p_valor < 0.001, "p < 0,001", paste0("p = ", format(round(p_valor, 4), decimal.mark = ",")))
+
+# Criando a tabela
+tabela_omnibus <- tibble::tibble(
+  `Qui-quadrado` = round(qui2, 2),
+  `GL` = gl,
+  `Valor-p` = p_formatado
+)
+
+# Exibindo como tabela formatada
+knitr::kable(tabela_omnibus, caption = "Teste Omnibus para os coeficientes do modelo")
+```
+
+
+```{r}
+#| label: tabela-coeficientes
+#| echo: false
+# Vamos coletar os coeficientes em um dataframe para facilitar a manipulação
+coeficientes <- data.frame(cbind(round(
+  summary(mod)$coefficients,3), # Coeficientes Beta, erro padrão, z, p-valor
+  exp(summary(mod)$coefficients[,1]), # exponencial de Beta
+  (exp(summary(mod)$coefficients[,1])-1)*100)) # magnitude de Beta em probabilidade percentual 
+
+# Renomeando o nome de cada coluna coeficiente 
+names(coeficientes) <- c('B', 'Erro Padrão', 'Z', 'Sig.', 'exp(B)', '(exp(B)-1) x 100')
+
+# Exibindo a tabela formatada
+knitr::kable(coeficientes, caption = "Coeficientes do modelo")
+```
+
+```{r}
+#| label: tabela-medida-de-ajustes
+#| echo: false
+
+# -2LL
+round(-2*logLik(mod),2)
+
+# -2LL do modelo nulo
+round(-2*logLik(mod_null),2)
+
+# Pseudo R² de McFadden 
+round(PseudoR2(mod, which = "McFadden"),3)
+
+# Pseudo R² de Cox & Snell
+round(PseudoR2(mod, which = "CoxSnell"), 3)
+
+# Pseudo R² de Nagelkerke
+round(PseudoR2(mod, which = "Nagelkerke"), 3)
+
+# BIC
+round(BIC(mod),3)
+round(BIC(mod_null),3) # BIC do modelo nulo
+
+# Gerar tabela com resultados
+tabela_ajustes <- data.frame(
+  Medida = c("-2 Log-Likelihood (-2LL)", "Pseudo R² de McFadden", "Pseudo R² de Cox & Snell", 
+             "Pseudo R² de Nagelkerke", "BIC"),
+  `Valor Modelo Logit` = c(round(-2*logLik(mod), 2),
+                           round(PseudoR2(mod, which = "McFadden"), 3),
+                           round(PseudoR2(mod, which = "CoxSnell"), 3),
+                           round(PseudoR2(mod, which = "Nagelkerke"), 3),
+                           round(BIC(mod), 3)),
+  `Valor Modelo Nulo` = c(round(-2*logLik(mod_null), 2),
+                          NA, NA, NA, round(BIC(mod_null), 3))
+)
+
+# Exibir tabela
+print(tabela_ajustes) |> 
+  flextable::flextable()
+```
+
+```{r}
+# calculando os valores preditos do modelo
+pred <- predict(mod, type = 'response')
+
+# OBS: Calcula o percentual das margens (total), indicando que probabilidades 
+#     preditas maiores que 0.5 serão consideradas 1 (ou seja, acerto)
+
+addmargins(prop.table(table(mod$y, pred > 0.3)))
+
+# Matriz de confusão com corte de 0.3
+table(mod$y, pred > 0.3)
+```
+
+

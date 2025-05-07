@@ -1,0 +1,41 @@
+/* Estilo geral para o corpo do texto */
+body {
+    /*font-family: "Times New Roman", serif; /* Fonte padrão ABNT */
+    /*font-size: 12pt; /* Tamanho da fonte */
+    line-height: 1.5; /* Espaçamento entre linhas */
+    text-align: justify; /* Justificação do texto */
+    /*margin-top: 30mm; /* Margem superior */
+    /*margin-bottom: 20mm; /* Margem inferior */
+    /*margin-left: 30mm; /* Margem esquerda */
+    /*margin-right: 20mm; /* Margem direita */
+    /*text-indent: 1.25cm; /* Recuo de parágrafo */
+}
+/*
+/* Cabeçalho */
+/*header {
+/*    text-align: center;
+  /*  font-size: 14pt;
+/*    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}/*
+/* Títulos de seções */
+/*h1, h2, h3 {
+    font-family: "Times New Roman", serif;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 18pt;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 16pt;
+    margin-bottom: 12px;
+}
+
+h3 {
+    font-size: 14pt;
+    margin-bottom: 10px;
+}
