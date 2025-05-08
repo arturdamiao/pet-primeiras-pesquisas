@@ -28,10 +28,39 @@ keywords:
   - Ensino superior
   - Capital cultural
 
+execute: 
+  warning: false
+
 lang: pt
-format:
-  html:
-    css: justificado.css
+
+format: 
+  pdf:
+    geometry: 
+      - top=30mm
+      - left=30mm
+      - right=20mm
+      - bottom=20mm
+    toc: true #adiciona o sumário
+    toc-depth: 2 #nível de profundidade do sumário
+    toc-title: "Sumário"
+    number-sections: true
+    colorlinks: true
+    
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyhf{} % Limpa qualquer configuração padrão
+#  - \renewcommand{\sectionmark}[1]{\markboth{#1}{}} % Marca títulos de nível 1
+#  - \renewcommand{\subsectionmark}[1]{\markright{#1}} % Marca títulos de nível 2
+#  - \chead{\nouppercase{\leftmark}} % Exibe título de nível 1 no centro
+#  - \rhead{\nouppercase{\rightmark} \hspace{1em} \thepage} % Exibe título de nível 2 no canto superior direito
+  - \lfoot{Elaborado por Grupo 01} % Rodapé inferior esquerdo
+  - \rfoot{Programa de Educação Tutorial - Ciências Sociais} % Rodapé inferior direito
+#  - \renewcommand{\headrulewidth}{0.4pt} % Linha fina no cabeçalho
+  - \renewcommand{\footrulewidth}{0.4pt} % Linha fina no rodapé
+    
+  # html:
+  #   css: justificado.css
 bibliography: references.bib
 ---
 
@@ -141,11 +170,17 @@ fuvest <- fuvest |>
    dplyr::relocate(escolaridade, .after = esc2)
 ```
 
-## Introdução
+\newpage
+
+# Introdução
 
 De acordo com @fernandes2020, etc.
 
-## Metodologia
+## Contextualização
+
+A
+
+# Metodologia
 
 A partir da base de dados da FUVEST, referente aos anos de `r min(fuvest$ano)` a `r max(fuvest$ano)`. Ao todo, somam-se `r count(fuvest)` observações distribuídas entre os anos.
 
@@ -169,14 +204,15 @@ $$
 
 Frente ao exposto, consideramos as seguintes hipóteses:
 
-**H~0~**: Raça, renda e tipo de escola não influenciam o ingresso de estudantes na carreira de Ciências Sociais. **H~1~**: A renda familiar e a escolaridade dos pais (proxy para capital cultural) aumentam as chances de ingresso (analisar dados da FUVEST, comparando os inscritos na carreira X perfil presente no curso, via questionário PET).\
+**H~0~**: Raça, renda e tipo de escola não influenciam o ingresso de estudantes na carreira de Ciências Sociais.  
+**H~1~**: A renda familiar e a escolaridade dos pais (proxy para capital cultural) aumentam as chances de ingresso (analisar dados da FUVEST, comparando os inscritos na carreira X perfil presente no curso, via questionário PET).\
 **H~2~**: Alunos oriundos de escolas privadas têm maior probabilidade de ingressar sem necessidade de cotas, mesmo em grupos de baixa renda.
 
 No contexto da análise das hipóteses propostas, o objetivo é investigar como variáveis sociodemográficas, como raça, renda familiar e tipo de escola, influenciam o ingresso de estudantes na carreira de Ciências Sociais. A hipótese nula (**H~0~**) sugere que essas variáveis não têm impacto significativo sobre a aprovação no vestibular, implicando que fatores como a origem socioeconômica dos candidatos não determinariam as suas chances de ingresso. Para testar essa hipótese, compararemos as características dos estudantes inscritos na FUVEST para a carreira de Ciências Sociais com o perfil dos alunos já aprovados, a partir dos dados do questionário PET.
 
 Por outro lado, a hipótese alternativa (**H~1~**) propõe que a renda familiar e a escolaridade dos pais (como proxy para o capital cultural) têm um efeito positivo nas chances de ingresso, favorecendo candidatos com maior capital cultural. A relação entre essas variáveis e o ingresso será analisada por meio do modelo de regressão apresentado, verificando a consistência e a força dessa associação nos dados coletados. Comparando o perfil dos inscritos com o dos aprovados, será possível avaliar a influência desses fatores no processo seletivo e nas desigualdades de acesso à educação superior.
 
-### Modelo de Regressão Logística
+### Técnica de pesquisa
 
 ```{r}
 #| label: modelo
@@ -201,6 +237,9 @@ Frequência da matrícula:
 ```{r}
 #| label: distribuicao 
 #| echo: false
+#| message: false
+#| results: asis
+#| warning: false
 # Frequência e proporção
 base_rep <- mod$model
 tab_matricula <- table(base_rep$matricula)
@@ -220,8 +259,25 @@ kable(tabela_matricula, caption = "Distribuição da variável 'matricula'")
 ```{r}
 #| label: teste-hosmer-lemeshow
 #| echo: false
+#| message: false
+#| results: asis
+#| 
 ## Teste de Hosmer e Lemeshow
-hoslem.test(mod$y, fitted(mod), g=10)
+
+library(kableExtra)
+
+resultado <- hoslem.test(mod$y, fitted(mod), g = 10)
+
+# Tabela 1: Observado vs Esperado
+knitr::kable(resultado$observed, caption = "Frequências Observadas vs Esperadas") %>%
+  kable_styling(latex_options = "hold_position")
+
+# Tabela 2: Estatística e p-valor
+knitr::kable(
+  data.frame(Estatística = resultado$statistic, `Valor-p` = resultado$p.value),
+  caption = "Resumo do Teste de Hosmer-Lemeshow"
+) %>%
+  kable_styling(latex_options = "hold_position")
 ```
 
 ```{r}
@@ -266,53 +322,71 @@ knitr::kable(coeficientes, caption = "Coeficientes do modelo")
 ```{r}
 #| label: tabela-medida-de-ajustes
 #| echo: false
+#| results: asis
+#| message: false
+#| warning: false
 
-# -2LL
-round(-2*logLik(mod),2)
+# Carregar pacotes, se necessário
+# library(pscl) # se estiver usando PseudoR2()
 
-# -2LL do modelo nulo
-round(-2*logLik(mod_null),2)
+# Calcular medidas (mas sem imprimir nada no console)
+ll_mod <- round(-2*logLik(mod), 2)
+ll_null <- round(-2*logLik(mod_null), 2)
 
-# Pseudo R² de McFadden 
-round(PseudoR2(mod, which = "McFadden"),3)
+r2_mcf <- round(PseudoR2(mod, which = "McFadden"), 3)
+r2_cox <- round(PseudoR2(mod, which = "CoxSnell"), 3)
+r2_nag <- round(PseudoR2(mod, which = "Nagelkerke"), 3)
 
-# Pseudo R² de Cox & Snell
-round(PseudoR2(mod, which = "CoxSnell"), 3)
+bic_mod <- round(BIC(mod), 3)
+bic_null <- round(BIC(mod_null), 3)
 
-# Pseudo R² de Nagelkerke
-round(PseudoR2(mod, which = "Nagelkerke"), 3)
-
-# BIC
-round(BIC(mod),3)
-round(BIC(mod_null),3) # BIC do modelo nulo
-
-# Gerar tabela com resultados
+# Montar tabela
 tabela_ajustes <- data.frame(
-  Medida = c("-2 Log-Likelihood (-2LL)", "Pseudo R² de McFadden", "Pseudo R² de Cox & Snell", 
-             "Pseudo R² de Nagelkerke", "BIC"),
-  `Valor Modelo Logit` = c(round(-2*logLik(mod), 2),
-                           round(PseudoR2(mod, which = "McFadden"), 3),
-                           round(PseudoR2(mod, which = "CoxSnell"), 3),
-                           round(PseudoR2(mod, which = "Nagelkerke"), 3),
-                           round(BIC(mod), 3)),
-  `Valor Modelo Nulo` = c(round(-2*logLik(mod_null), 2),
-                          NA, NA, NA, round(BIC(mod_null), 3))
+  Medida = c("-2 Log-Likelihood (-2LL)", 
+             "Pseudo R² de McFadden", 
+             "Pseudo R² de Cox & Snell", 
+             "Pseudo R² de Nagelkerke", 
+             "BIC"),
+  `Valor Modelo Logit` = c(ll_mod, r2_mcf, r2_cox, r2_nag, bic_mod),
+  `Valor Modelo Nulo` = c(ll_null, NA, NA, NA, bic_null)
 )
 
-# Exibir tabela
-print(tabela_ajustes) |> 
-  flextable::flextable()
+# Mostrar só a tabela
+knitr::kable(tabela_ajustes, caption = "Medidas de ajuste para os modelos Logit e Nulo")
 ```
+
 
 ```{r}
-# calculando os valores preditos do modelo
-pred <- predict(mod, type = 'response')
+#| label: matriz-confusao
+#| echo: false
+#| results: asis
+#| message: false
+#| warning: false
 
-# OBS: Calcula o percentual das margens (total), indicando que probabilidades 
-#     preditas maiores que 0.5 serão consideradas 1 (ou seja, acerto)
+# Calcular probabilidades preditas
+pred <- predict(mod, type = "response")
 
-addmargins(prop.table(table(mod$y, pred > 0.3)))
+# Criar matriz de confusão com corte 0.3
+mat_conf <- table(Real = mod$y, Previsto = pred > 0.3)
 
-# Matriz de confusão com corte de 0.3
-table(mod$y, pred > 0.3)
+# Exibir como tabela formatada
+knitr::kable(as.data.frame.matrix(mat_conf),
+             caption = "Matriz de Confusão (corte de 0.3)")
+
 ```
+
+# Discussão
+
+Concluímos que 
+
+## Conclusão
+
+Teste um dois 
+### Principais Achados
+
+Achamos que 
+
+# Referências Bibliográficas
+
+::: {#refs}
+:::
