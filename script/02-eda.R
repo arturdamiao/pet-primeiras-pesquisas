@@ -56,10 +56,27 @@ mod <- glm(formula = matricula ~ renda + esc1 + ensino_fund +
              ensino_med + tipo_EM + cursinho,
            family=binomial(link=logit), data=fuvest)
 
+mode_lm <- lm(formula = matricula ~ as.factor(renda) + as.factor(esc1) + as.factor(ensino_fund) +
+                 as.factor(ensino_med) + as.factor(tipo_EM) + cursinho, data=fuvest)
+summary(mode_lm)
+
 # Imprimir o modelo
 base::summary(mod)
 
+invlogit(coef(mod)[1] + coef(mod)[2]*9 + coef(mod)[3]*6 + coef(mod)[4]*2 + coef(mod)[5]*2 +
+           coef(mod)[6]*1 + coef(mod)[7]*0)
+
+invlogit(coef(mod)[1] + coef(mod)[2]*9 + coef(mod)[3]*6 + coef(mod)[4]*2 + coef(mod)[5]*2 +
+           coef(mod)[6]*1 + coef(mod)[7]*1)
 tab_model(mod)
+
+coef(mode_lm)[1] + coef(mode_lm)[2]*2 + coef(mode_lm)[3]*1 + coef(mode_lm)[4]*1 + coef(mode_lm)[5]*1 +
+  coef(mode_lm)[6]*1 + coef(mode_lm)[7]*1
+
+mod_0 <- glm(formula = matricula ~ cursinho,
+           family=binomial(link=logit), data=fuvest)
+
+summary(mod_0)
 
 ### Dúvida: modelo link logit ou probit? 
 
