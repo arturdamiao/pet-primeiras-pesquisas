@@ -29,7 +29,7 @@ fuvest <- readxl::read_xlsx("dados/fuvest.xlsx")
 # da FUVEST.
 fuvest <- fuvest |> 
   dplyr::select(
-    c(ano,V4,V6,V7,V8,V9,V11,V12,V15,V16,V17,V18,V25,V26)
+    c(ano,V4,V6,V7,V8,V9,V11,V12,V15,V16,V17,V18)
   )
 
 fuvest <- fuvest |> 
@@ -44,9 +44,7 @@ fuvest <- fuvest |>
     ensino_fund = V15,
     ensino_med = V16,
     tipo_EM = V17,
-    cursinho = V18, 
-    modalidade_inscricao = V25,
-    modalidade_matricula = V26
+    cursinho = V18
   )
 
 # Criação do modelo de Regressão ------------------------------------------
