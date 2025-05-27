@@ -18,3 +18,4 @@ fuvest %>%
        x = "Faixa de Renda (em SM)",
        y = "Proporção de matriculados") +
   theme_classic()
+
