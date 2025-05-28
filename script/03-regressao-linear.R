@@ -50,7 +50,7 @@ modelo7 <- lm(formula = matricula ~ renda,
               data=fuvest)
 
 # Imprimir o modelo
-base::summary(modelo1)
+base::summary(modelo0)
 
 jtools::export_summs(modelo1)
 jtools::plot_summs(modelo2, modelo3, modelo4, robust = "HC3")
@@ -61,6 +61,33 @@ modelo2 |>
 plot(modelo1)
 
 performance::check_model(modelo1)
+
+
+# Checagem de pressupostos --------------------------------------
+
+modelo0 <- lm(formula = matricula ~ renda + escolaridade + tipo_EM,
+              data=fuvest)
+
+## Resíduos 
+res <- rstandard(modelo00);res
+
+## Teste de normalidade (Shapiro-Wilki)
+shapiro.test(res)
+# Dados não são normais
+
+## Independência
+
+# Dados são independentes, pela forma que foram coletados. 
+
+## Teste de variância (Breush-Pagan)
+car::ncvTest(modelo0)
+# Presença de heterocedasticidade, ou seja, os resíduos não tem variância constante ao longo dos valores ajustados. 
+
+modelo00 <- glm(formula = matricula ~ renda + escolaridade + tipo_EM,
+              data=fuvest)
+
+summary(modelo00)
+
 
 # Comparação modelos ---------------------------------------------
 
@@ -73,6 +100,14 @@ AIC(modelo1, modelo2, modelo3, modelo4, modelo5, modelo6, modelo7)
 anova(modelo1, modelo2, modelo3, modelo4, modelo5, modelo6, modelo7)
 
 ### O melhor modelo é o com o menor RSS - Residual Sum of Squares. O modelo 1. 
+
+
+
+
+
+
+
+
 
 
 # Interpretando o modelo ----------------------------------------
