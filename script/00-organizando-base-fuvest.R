@@ -35,6 +35,12 @@ fuvest <- fuvest |>
 # Modificando os tipos de variáveis
 fuvest_df <- fuvest |> 
   dplyr::mutate(
+    escolaridade = pmax(as.numeric(esc1),
+                        as.numeric(esc2), na.rm = TRUE
+    ),
+    escolaridade = factor(escolaridade,
+                          levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    ),
     raca = case_when(
       raca %in% 2:4 ~ 2,
       TRUE ~ 1
