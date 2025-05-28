@@ -68,6 +68,10 @@ performance::check_model(modelo1)
 modelo0 <- lm(formula = matricula ~ renda + escolaridade + tipo_EM,
               data=fuvest)
 
+modelo0 |> tbl_regression() |> 
+  bold_labels()
+
+
 ## Resíduos 
 res <- rstandard(modelo00);res
 
