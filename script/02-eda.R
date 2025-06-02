@@ -17,7 +17,8 @@ library(ResourceSelection)
 library(BaylorEdPsych)
 library(DescTools)
 library(caret)
-
+library(modelbased)
+library(easystats)
 # Mudar formato do número a ser usado
 options(scipen = 100) # evitar usar número científico como padrão
 
@@ -47,16 +48,61 @@ fuvest <- fuvest |>
     cursinho = V18
   )
 
+fuvest <- fuvest |>
+  dplyr::mutate(renda = as.factor(renda),
+                esc1 = as.factor(esc1),
+                ensino_fund = as.factor(ensino_fund),
+                ensino_med = as.factor(ensino_med),
+                tipo_EM = as.factor(tipo_EM),
+                raca = factor(raca, labels = c("branco", "preto", "pardo", "amarelo", "indígena"))) # checar se está certo
+
 # Criação do modelo de Regressão ------------------------------------------
 # Gerar o modelo a partir de variáveis de interesse
 
-mod <- glm(formula = matricula ~ renda + esc1 + ensino_fund +
-             ensino_med + tipo_EM + cursinho,
-           family=binomial(link=logit), data=fuvest)
+# mod <- glm(formula = matricula ~ renda + esc1 + ensino_fund +
+#              ensino_med + tipo_EM + cursinho,
+#            family=binomial(link=logit), data=fuvest)
 
-mode_lm <- lm(formula = matricula ~ as.factor(renda) + as.factor(esc1) + as.factor(ensino_fund) +
-                 as.factor(ensino_med) + as.factor(tipo_EM) + cursinho, data=fuvest)
+mode_lm <- lm(formula = matricula ~ renda + esc1 + ensino_fund +
+                 ensino_med + tipo_EM + cursinho + raca, data=fuvest)
 summary(mode_lm)
+
+
+modelbased::estimate_means(mode_lm, by = "renda")
+
+means_renda <- estimate_means(mode_lm, by = "renda")
+
+plot(means_renda)
+
+means_raca <- estimate_means(mode_lm, by = "raca")
+
+plot(means_raca)
+
+means_renda_raca <- estimate_means(mode_lm, by = c("renda", "raca"))
+
+plot(means_renda_raca)
+
+means_renda_em <- estimate_means(mode_lm, by = c("renda", "tipo_EM"))
+
+plot(means_renda_em)
+
+mode_lm <- lm(matricula ~  raca, data=fuvest)
+
+expec <- estimate_expectation(mode_lm)
+pred <- estimate_prediction(mode_lm)
+head(pred)
+
+
+
+pred |>
+  ggplot(aes(y = Predicted, x = raca)) + geom_col() +
+  geom_errorbar() +
+  theme_minimal()
+
+pred |>
+  ggplot(aes(y = Predicted, x = renda)) + geom_col() +
+  theme_minimal()
+
 
 # Imprimir o modelo
 base::summary(mod)
