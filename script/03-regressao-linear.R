@@ -18,7 +18,9 @@ library(caret)
 library("predict3d")
 library(jtools)
 library(huxtable)
-
+library(modelbased)
+library(easystats)
+library(ggplot2)
 # Mudar formato do número a ser usado
 options(scipen = 100) # evitar usar número científico como padrão
 
@@ -48,6 +50,48 @@ modelo6 <- lm(formula = matricula ~ renda + raca,
               data=fuvest)
 modelo7 <- lm(formula = matricula ~ renda,
               data=fuvest)
+
+# visualização
+
+means_renda <- estimate_means(modelo1, by = "renda")
+
+plot(means_renda)
+
+expec <- estimate_expectation(modelo1)
+
+
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(raca) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = raca)) + geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  theme_minimal()
+
+
+expec |>
+  ggplot(aes(y = Predicted, x = raca)) + geom_col() +
+  theme_minimal()
+
+expec |>
+  ggplot(aes(y = Predicted, x = renda)) + geom_col() +
+  theme_minimal()
+
+
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(renda) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = renda)) + geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::label_percent())
 
 # Imprimir o modelo
 base::summary(modelo0)
