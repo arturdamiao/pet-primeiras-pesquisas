@@ -47,7 +47,7 @@ fuvest_df <- fuvest |>
     ),
     raca = factor(raca,
                   levels = c(1, 2),
-                  labels = c("Branco", "PPI")
+                  labels = c("Não PPI", "PPI")
     ),
     renda = factor(renda,
                    levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
