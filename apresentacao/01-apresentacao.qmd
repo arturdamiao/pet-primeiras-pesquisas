@@ -97,7 +97,8 @@ fuvest <- fuvest |>
 
 # Construindo o modelo ------------------------------------------
 
-modelo1 <- lm(formula = matricula ~ renda + raca + escolaridade + ensino_fund + ensino_med  + cursinho,
+modelo1 <- lm(formula = matricula ~ renda + raca + ppi + escolaridade + ensino_fund +
+              ensino_med  + cursinho,
               data=fuvest)
 
 expec <- modelbased::estimate_expectation(modelo1)
@@ -146,7 +147,7 @@ $$
 | **Escolaridade dos pais** | Ordinal | 1 (não estudou) a 9 (pós-graduação) |
 | **Tipo de escola** | Categórica (dummy) | 0 = Escola pública <br> 1 = Escola privada |
 
-# Resultados
+# Descrição das variáveis
 
 ## Matrícula
 
@@ -177,10 +178,10 @@ fuvest |>
   dplyr::count(matricula, sexo) |>
   dplyr::mutate(
     sexo = dplyr::recode(sexo,
-                  `1` = "Masculino", 
+                  `1` = "Masculino",
                   `2` = "Feminino"),
     percentual = paste0(format(round(100 * n / sum(n), 1), decimal.mark = ","), "%")
-  ) |>
+   ) |>
   knitr::kable(
     format = "html",
     align = "c",
@@ -210,6 +211,8 @@ fuvest |>
     caption = "Porcentagem de convocados para matrícula por raça<br>(n = 3914)"
   )
 ```
+
+# Resultados
 
 ## Renda e tipo de Ensino Médio concluído
 
@@ -251,7 +254,7 @@ fuvest %>%
 
 # Previsões do modelo de regressão
 
-## Raça
+## Raça - PPI
 
 ```{r}
 expec |>
@@ -268,6 +271,30 @@ expec |>
     title = "Previsão de convocação para matrícula (%) - Raça",
     subtitle = "Intervalo de confiança de 95%",
     x = "Raça/Cor",
+    y = "Probabilidade de convocação",
+    caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") +
+  theme_classic() + 
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+
+## Raça (agrupado)
+
+```{r}
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(ppi) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = ppi)) +
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.3, size = 1) +
+  labs(
+    title = "Previsão de convocação para matrícula (%) - Raça (agrupado)",
+    subtitle = "Intervalo de confiança de 95%",
+    x = "Raça/Cor (agrupado)",
     y = "Probabilidade de convocação",
     caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") +
   theme_classic() + 

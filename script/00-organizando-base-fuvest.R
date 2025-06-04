@@ -41,13 +41,17 @@ fuvest_df <- fuvest |>
     escolaridade = factor(escolaridade,
                           levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
     ),
-    raca = case_when(
+    ppi = case_when(
       raca %in% 2:4 ~ 2,
       TRUE ~ 1
     ),
+    ppi = factor(ppi,
+                 levels = c(1, 2),
+                 labels = c("Não PPI", "PPI")
+    ),
     raca = factor(raca,
-                  levels = c(1, 2),
-                  labels = c("Não PPI", "PPI")
+                  levels = c(1, 2, 3, 4, 5),
+                  labels = c("Branca", "Preta", "Parda", "Amarela", "Indígena")
     ),
     renda = factor(renda,
                    levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
