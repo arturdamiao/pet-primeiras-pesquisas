@@ -1,0 +1,342 @@
+---
+title: "Desigualdades no acesso às Ciências Sociais da USP:"
+subtitle: "*_O papel da raça, renda e escolaridade na aprovação do vestibular_*"
+author:
+  - name: "[Artur Damião](https://arturdamiao.com)"
+#    orcid: 0000-0002-8628-1653
+#    email: arturcardoso@usp.br
+#    affiliation: Departamento de Sociologia
+  - name: Isabella da Nóbrega
+#    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+#    email: isabelladanobrega@usp.br
+  - name: Gabriella Medeiros
+#    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+#    email: gabriella.medeiros@usp.br
+  - name: Maria Eduarda
+#    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+#    email: sduda8958@usp.br
+  - name: Yasmin Flor
+#    affiliation: Faculdade de Filosofia, Letras e Ciências Humanas
+#    email: floryasmin861@usp.br
+
+# institute: "_Programa de Educação Tutorial - Ciências Sociais_"
+#date: 2025/01/22
+#date-format: long
+lang: pt
+format: 
+  revealjs:
+    transition: slide
+    transition-speed: fast
+    logo: "fflch.png"
+    logo-height: 100px
+    width: 1600
+    height: 900
+    self-contained: false
+    incremental: false
+    footer: "Slides feito com [Quarto](https://quarto.org/). Código disponível [no GitHub](https://github.com/arturdamiao/pet-primeiras-pesquisas)."
+    theme: simple
+    slide-number: c/t
+    show-slide-number: all
+    hash-type: number
+    preview-links: false
+knitr: 
+  opts_chunk: 
+    # eval: false
+    # echo: false
+    message: false
+    warning: false
+    fig.align: "center"
+
+csl: abnt2025.csl
+bibliography: 
+  - grateful-refs.bib
+  - references.bib
+---
+
+```{r}
+#| label: ambientacao
+#| include: false
+
+# Carregar pacotes necessários ----------------------------
+library(sjPlot)
+library(easyORtables)
+library(xfun)
+library(plotor)      
+library(datasets)   
+library(forcats)     
+library(stats)      
+library(broom)       
+library(ggplot2)     
+library(gtsummary)
+library(tidyverse)
+library(ResourceSelection)
+library(DescTools)
+library(caret)
+library("predict3d")
+library(jtools)
+library(huxtable)
+library(modelbased)
+library(easystats)
+library(ggplot2)
+library(grateful)
+library(hrbrthemes)
+
+# Mudar formato do número a ser usado
+options(scipen = 100) # evitar usar número científico como padrão
+
+# Importando base de dados -----------------
+fuvest <- readxl::read_xlsx("../dados/fuvest_tratado.xlsx")
+fuvest <- fuvest |> 
+  tidyr::drop_na()
+```
+
+```{r}
+#| label: modelo 
+#| include: false
+#| cache: true
+
+# Construindo o modelo ------------------------------------------
+
+modelo1 <- lm(formula = matricula ~ renda + raca + escolaridade + ensino_fund + ensino_med  + cursinho,
+              data=fuvest)
+
+expec <- modelbased::estimate_expectation(modelo1)
+```
+
+# Introdução
+
+## Contexto
+
+-   O PET Ciências Sociais tem um histórico de analisar as diferenças dos perfis de estudantes em sociais ao longo dos anos, e consequentemente pensar nas desigualdades que esses dados apresentam.
+
+-   Em conjunto disso, a Universidade de São Paulo adotou a política de cotas por reserva de vagas no ano de 2018, o que torna interessante refletir sobre as características do perfil discente nos últimos anos.
+
+## O que propomos?
+
+O presente trabalho trata das desigualdades de acesso ao curso de Ciências Sociais da Universidade de São Paulo, a partir das características de raça, renda familiar, tipo de ensino médio cursado e escolaridade dos pais, daqueles que prestam o vestibular da FUVEST.
+
+A partir disso, ancomoramo-nos teoricamente na obra de Bourdieu e nos trabalhos empíricos produzidos por Almeida, Carlotto e Takata que tratam das estratificações sociais especificamente na Universidade de São Paulo [@bourdieu1989].
+
+## Objetivos
+
+Por meio de dados secundários disponibilizados pela Fundação Universitária para o Vestibular (FUVEST), objetiva-se investigar quais variáveis são mais significativas para a matrícula do estudante na carreira de Ciências Sociais na USP.
+
+# Metodologia
+
+## Métodos e técnicas
+
+A partir de uma base de dados da [Fuvest](https://www.fuvest.br/), compartilhada pelo professor [Murillo Marschner](https://sociologia.fflch.usp.br/node/84) no âmbito do processo FAPESP de número [22/03165-0](https://bv.fapesp.br/pt/pesquisa/buscador/?q2=(id_pesquisador_exact%3A705331)%20AND%20(auxilio:*%20AND%20situacao:%22Em%20andamento%22)), analisaremos os dados disponibilizados referentes aos anos de 2019 a 2023 em relação ao estudantes convocados para a matrícula no curso de Ciências Sociais da USP.
+
+Na sequência, realizaremos estatísticas descritivas e a interpretação de um modelo de regressão linear múltipla. Estabelecemos a **variável dependente** como sendo a convocação para a matrícula na FUVEST, sendo ela *proxy* para matriculados e as **variáveis independentes** sendo renda, maior escolaridade dos pais, raça, tipo de ensino médio, tipo de ensino fundamental e se fez cursino. A equação estimada foi:
+
+$$
+\begin{aligned}
+\widehat{y} =\ & \beta_0 + \beta_1 \cdot \text{renda} + \beta_2 \cdot \text{raça} + \beta_3 \cdot \text{escolaridade} \\
+& + \beta_4 \cdot \text{fundamental} + \beta_5 \cdot \text{médio} + \beta_6 \cdot \text{cursinho}
+\end{aligned}
+$$
+
+## Desenho de pesquisa
+
+| Variável | Tipo | Categoria/Descrição |
+|-------------------------|------------------------|-----------------------|
+| **Aprovação no vestibular** | Binária | 1 = Aprovado <br> 0 = Não aprovado |
+| **Raça** | Categórica (dummy) | 0 = Não-PPI <br> 1 = PPI |
+| **Renda familiar** | Contínua | Faixas de renda em salários mínimos |
+| **Escolaridade dos pais** | Ordinal | 1 (não estudou) a 9 (pós-graduação) |
+| **Tipo de escola** | Categórica (dummy) | 0 = Escola pública <br> 1 = Escola privada |
+
+# Resultados
+
+## Matrícula
+
+```{r}
+#| label: tbl-percentual-matricula
+#| tbl-align: center
+
+fuvest |>
+  dplyr::count(matricula) |>
+  dplyr::mutate(
+    percentual = paste0(format(round(100 * n / sum(n), 1), decimal.mark = ","), "%")
+  ) |>
+  knitr::kable(
+    format = "html",
+    align = "c",
+    col.names = c("Matrícula", "N°", "Percentual"),
+    caption = "Porcentagem de convocados para matrícula<br>(n = 3914)"
+  )
+```
+
+## Sexo
+
+```{r}
+#| label: tbl-percentual-sexo
+#| tbl-align: center
+
+fuvest |>
+  dplyr::count(matricula, sexo) |>
+  dplyr::mutate(
+    sexo = dplyr::recode(sexo,
+                  `1` = "Masculino", 
+                  `2` = "Feminino"),
+    percentual = paste0(format(round(100 * n / sum(n), 1), decimal.mark = ","), "%")
+  ) |>
+  knitr::kable(
+    format = "html",
+    align = "c",
+    col.names = c("Matrícula", "Sexo", "N°", "Percentual"),
+    caption = "Porcentagem de convocados para matrícula por sexo<br>(n = 3914)"
+  )
+```
+
+## Raça
+
+```{r}
+#| label: tbl-percentual-raca
+#| tbl-align: center
+
+fuvest |>
+  dplyr::count(matricula, raca) |>
+  dplyr::mutate(
+    raca = dplyr::recode(raca,
+                  `1` = "Não PPI", 
+                  `2` = "PPI"),
+    percentual = paste0(format(round(100 * n / sum(n), 1), decimal.mark = ","), "%")
+  ) |>
+  knitr::kable(
+    format = "html",
+    align = "c",
+    col.names = c("Matrícula", "Raça", "N°", "Percentual"),
+    caption = "Porcentagem de convocados para matrícula por raça<br>(n = 3914)"
+  )
+```
+
+## Renda e tipo de Ensino Médio concluído
+
+```{r}
+#| echo: false
+ggplot2::ggplot(data = fuvest, aes(x = as.numeric(renda), group = as.numeric(tipo_EM),
+                                fill=tipo_EM)) + 
+  geom_density(adjust=1.5, alpha=.4) +
+  theme_classic() +
+  xlab("Faixa de renda (em SM)") +
+  ylab("Densidade") + 
+  labs(
+    title = "Distribuição da renda segundo tipo de Ensino Médio\n(n = 3914)",
+    fill = "Tipo de\n Ensino Médio",
+    caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") + 
+  scale_fill_discrete(
+    labels = c("1" = "EM Comum",
+               "2" = "EM Técnico",
+               "3" = "EM Magistério",
+               "4" = "EJA",
+               "5" = "Outro")
+  ) +
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+## Taxa de Matrícula e Renda {visibility="hidden"}
+
+```{r}
+fuvest %>%
+  group_by(renda) %>%
+  summarise(taxa_matricula = mean(matricula)) %>%
+  ggplot(aes(x = renda, y = taxa_matricula)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Taxa observada de matrícula por faixa de renda",
+       x = "Faixa de Renda (em SM)",
+       y = "Proporção de matriculados") +
+  theme_classic()
+```
+
+# Previsões do modelo de regressão
+
+## Raça
+
+```{r}
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(raca) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = raca)) +
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.3, size = 1) +
+  labs(
+    title = "Previsão de convocação para matrícula (%) - Raça",
+    subtitle = "Intervalo de confiança de 95%",
+    x = "Raça/Cor",
+    y = "Probabilidade de convocação",
+    caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") +
+  theme_classic() + 
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+## Renda
+
+```{r}
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(renda) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = renda)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower, ymax = upper)
+                , width = 0.3, size = 1) +
+  labs(
+    title = "Previsão de convocação para matrícula (%) - Faixa de Renda",
+#    subtitle = "Intervalo de confiança de 95%",
+    x = "Faixa de renda",
+    y = "Probabilidade de convocação",
+    caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") + 
+  theme_classic() +
+  scale_y_continuous(labels = scales::label_percent())
+
+```
+
+## Escolaridade dos pais
+
+```{r}
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(escolaridade) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = escolaridade)) + 
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower, ymax = upper),
+                width = 0.2, size = 1) +
+  labs(
+    title = "Previsão de convocação para matrícula (%) - Escolaridade dos pais",
+    subtitle = "Intervalo de confiança de 95%",
+    x = "Escolaridade",
+    y = "Probabilidade de convocação",
+    caption = "Fonte: Elaboração própria a partir dos dados da FUVEST") + 
+  theme_classic() + 
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+# Discussão
+
+# Conclusão
+
+-   A medida que a faixa de renda avança, há um aumento no percentual de chance de probabilidade na matrícula.
+
+-   Pessoas com Ensino Médio Técnico (ETEC, IF, etc) apresentam maior chance de ingresso em relação a pessoas com outros tipos de Ensino Médio . (achados em diálogo com @takata2025)
+
+# Referências bibliográficas e `pacotes`
+
+::: {#refs}
+:::
+
+```{r}
+# pkgs <- grateful::cite_packages(output = "table", out.dir = ".")
+# knitr::kable(pkgs)
+```
