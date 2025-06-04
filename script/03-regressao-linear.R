@@ -1,4 +1,5 @@
 # Carregar pacotes necessários --------------------------------------------
+
 library(sjPlot)
 library(easyORtables)
 library(xfun)
@@ -33,7 +34,7 @@ fuvest <- fuvest |>
 
 # Construindo o modelo ------------------------------------------
 
-modelo1 <- lm(formula = matricula ~ renda + raca + esc1 + esc2 + ensino_fund +
+modelo1 <- lm(formula = matricula ~ renda + raca + escolaridade + ensino_fund +
                 ensino_med + tipo_EM + cursinho,
               data=fuvest)
 modelo2 <- lm(formula = matricula ~ renda + raca + esc1 + esc2 + ensino_fund +
@@ -59,6 +60,7 @@ plot(means_renda)
 
 expec <- estimate_expectation(modelo1)
 
+### Previsão de convocação para matrícula (%) PPI
 
 expec |>
   mutate(lower = Predicted - 1.96*SE,
@@ -69,17 +71,16 @@ expec |>
             upper = mean(upper)) |>
   ggplot(aes(y = previsao, x = raca)) + geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper)) +
-  theme_minimal()
+  theme_classic() + 
+  scale_y_continuous(labels = scales::label_percent())
 
+### Previsão de convocação para matrícula (Absoltuo) PPI
 
 expec |>
   ggplot(aes(y = Predicted, x = raca)) + geom_col() +
   theme_minimal()
 
-expec |>
-  ggplot(aes(y = Predicted, x = renda)) + geom_col() +
-  theme_minimal()
-
+### Previsão de convocação para matrícula (%) - Faixa de Renda
 
 expec |>
   mutate(lower = Predicted - 1.96*SE,
@@ -90,7 +91,27 @@ expec |>
             upper = mean(upper)) |>
   ggplot(aes(y = previsao, x = renda)) + geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper)) +
-  theme_minimal() +
+  theme_classic() +
+  scale_y_continuous(labels = scales::label_percent())
+
+### Previsão de convocação para matrícula (Absoluto) - Faixa de Renda
+
+expec |>
+  ggplot(aes(y = Predicted, x = renda)) + geom_col() +
+  theme_minimal()
+
+### Previsão de convocação para Escolaridade (%) PPI
+
+expec |>
+  mutate(lower = Predicted - 1.96*SE,
+         upper = Predicted + 1.96*SE) |>
+  group_by(escolaridade) |>
+  summarise(previsao = mean(Predicted),
+            lower = mean(lower),
+            upper = mean(upper)) |>
+  ggplot(aes(y = previsao, x = escolaridade)) + geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  theme_classic() + 
   scale_y_continuous(labels = scales::label_percent())
 
 # Imprimir o modelo
